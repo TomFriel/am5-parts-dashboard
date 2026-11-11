@@ -1,34 +1,56 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10141c"><title>AM5 Deal Check</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#0f141c;color:#f2f6fc;font:15px -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif}main{max-width:710px;margin:auto;padding:24px 14px 45px}h1{font-size:25px;margin:0 0 5px;letter-spacing:-.8px}p{margin:5px 0;color:#a3afc0;line-height:1.4}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.top button,.btn{background:#273447;color:#eff5ff;text-decoration:none;border:1px solid #40516b;border-radius:9px;padding:10px 12px;font:inherit;cursor:pointer}#stamp{font-size:12px;margin:6px 0 22px}.card{background:#1a2230;border:1px solid #303e50;border-radius:15px;padding:16px;margin-bottom:12px}.name{font-weight:750;font-size:17px}.spec{font-size:12px;color:#a3afc0;margin-top:4px}.line{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin:15px 0}.muted{color:#a3afc0;font-size:13px}.price{font-size:24px;font-weight:800;white-space:nowrap;letter-spacing:-.5px}.price small{font-size:11px;font-weight:400;color:#a3afc0}.deal{border-top:1px solid #324052;padding-top:11px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}.savings{color:#87edbb;font-weight:750}.none{color:#f4c987;font-size:13px}.action{display:flex;gap:7px;flex-wrap:wrap}.action .btn{font-size:13px;padding:9px 10px}.action a{color:#dceaff}.status{font-size:12px;border:1px solid #526079;color:#cbd5e5;border-radius:6px;padding:4px 7px;white-space:nowrap}.footer{font-size:12px;color:#9caabd;line-height:1.5;margin-top:20px}strong{color:#fff}.row{display:flex;justify-content:space-between;align-items:center;gap:6px}a{color:#a5caff}button:active{opacity:.7}.hide{display:none}#summary{font-size:13px;color:#a3afc0;margin:10px 0 18px}#summary b{color:#f3f6ff}.footnote{font-size:11px;color:#8292a5;margin-top:7px}
-</style></head>
-<body><main><div class="top"><div><h1>AM5 deal check</h1><p>4 parts. Good deals only.</p></div><button onclick="load()">↻ Refresh</button></div>
-<p id="stamp">Checking saved price data…</p><div id="list"></div><p id="summary"></p><div class="footer">Hourly GitHub checks attempt to refresh prices and eBay auctions. A check is <strong>not</strong> proof that a retailer price changed. Only validated public data appears; blocked prices show as unavailable, and unverified auctions are hidden. VAT and delivery may differ at checkout. Retail comparisons are not necessarily Amazon prices. Auction bids can rise before closing.</div></main>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#111721">
+<title>AM5 Deal Board</title><style>
+:root{color-scheme:dark;--bg:#0e131b;--pane:#192330;--line:#2d3c4d;--txt:#eef5fa;--muted:#a3b0c2;--green:#76e6ad;--gold:#f8cc7b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px system-ui,-apple-system,Segoe UI,sans-serif}main{max-width:850px;margin:auto;padding:20px 13px 55px}h1{font-size:24px;margin:0 0 3px;letter-spacing:-.6px}p{margin:4px 0 10px;color:var(--muted);line-height:1.45}header{display:flex;justify-content:space-between;align-items:center;gap:12px}.title{font-size:18px;font-weight:780}.small{font-size:12px;color:var(--muted)}.card{background:var(--pane);border:1px solid var(--line);border-radius:14px;margin-top:12px;overflow:hidden}.head{padding:15px 14px 11px;border-bottom:1px solid var(--line)}.line{display:flex;justify-content:space-between;gap:10px;align-items:center}.flag{border:1px solid #456079;border-radius:7px;font-size:11px;color:#aebed3;padding:5px 7px;white-space:nowrap}.target{margin-top:8px;font-size:13px;color:#c0cbda}.list{padding:0 13px 4px}.offer{border-bottom:1px solid var(--line);padding:12px 0}.offer:last-child{border:0}.new{color:#e9f1ff}.auction{color:#f8cc7b}.badge{font-size:10px;border:1px solid #506174;padding:3px 6px;border-radius:5px;text-transform:uppercase;letter-spacing:.2px}.pr{font-size:19px;font-weight:800;white-space:nowrap}.pr small{color:var(--muted);font-size:11px;font-weight:450}.meta{font-size:12px;color:var(--muted);margin:4px 0}.savings{color:var(--green);font-weight:650}.warn{color:var(--gold)}a{color:#a8ceff;text-decoration:none}a:hover{text-decoration:underline}.btn{border:1px solid #4b6280;background:#26384f;color:#eaf2ff;padding:9px 11px;border-radius:9px;font:inherit;cursor:pointer;text-decoration:none;display:inline-block}.btn:hover{background:#30445d;text-decoration:none}.btn.sm{padding:7px 9px;font-size:12px}select{font-size:12px;background:#101b27;color:var(--txt);border:1px solid #435a70;border-radius:8px;padding:8px;max-width:135px}.no{padding:12px 0;color:#c3cfde}.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:13px 0}.controls button.active{background:#3a5772;border-color:#6e97be}.foot{font-size:12px;line-height:1.5;color:var(--muted);margin-top:20px}.sum{padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:16px;color:var(--muted)}.sum b{color:var(--txt)}.fine{font-size:11px;color:#8da0b5}.pl{font-size:12px;color:#a3b0c2;max-width:55%;overflow-wrap:anywhere}
+</style></head><body><main><header><div><h1>AM5 deals</h1><p>Multiple offers. Real prices. No CPUs.</p></div><button class="btn" onclick="reload()">↻ Check</button></header>
+<p id="stamp" class="small">Loading source data…</p><div class="controls"><button class="btn sm active" id="all" onclick="setView('all')">All offers</button><button class="btn sm" id="auction" onclick="setView('auction')">Auctions</button><button class="btn sm" id="new" onclick="setView('new')">New only</button><button class="btn sm" id="saved" onclick="setView('saved')">My saved</button></div>
+<div id="parts"></div><div class="sum" id="sum">CPU purchased · SSDs reused · cooler to confirm AM5. PSU planned: MSI MAG A850GL.</div>
+<div class="foot"><b>How this works:</b> GitHub attempts an hourly scan of named retailers and public searches (including Scan, CCL, AWD-IT, Overclockers, Box, Ebuyer, Currys, Amazon and others) plus eBay auctions. Coverage is best-effort, not every store; some sites block automated reads. Missing postage, seller, auction end and stock are shown as unknown. A lower current bid is not a guaranteed sale price. The reference prices shown when no newer listing can be checked are <b>not</b> live prices. Delivery to Ireland must be checked on the merchant's checkout. Decisions are stored only in this browser.</div></main>
 <script>
-const PARTS=[
-{id:"mobo",name:"MSI B850 Gaming Plus WiFi 6E",detail:"Exact motherboard · AM5"},
-{id:"ram",name:"32GB DDR5-6000 CL30 RGB",detail:"2×16GB · AMD EXPO required"},
-{id:"gpu",name:"RTX 5070 Ti 16GB",detail:"MSI Shadow 3X OC preferred"},
-{id:"case",name:"Montech KING 95 PRO White",detail:"Target: £150 or less"}];
-let DATA={};
-const money=n=>typeof n==="number"&&Number.isFinite(n)?"£"+n.toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}):"Not verified";
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function safe(u){try{const x=new URL(u);return x.protocol==="https:"?x.href:"#"}catch{return "#"}}
-function render(){
-let missing=0;
-document.getElementById("list").innerHTML=PARTS.map(p=>{
-const item=DATA.items?.[p.id]||{},retail=item.new||{},validRetail=Number.isFinite(retail.price);
-if(!validRetail)missing++;
-const deals=(item.deals||[]).filter(d=>Number.isFinite(d.price)&&Number.isFinite(d.shipping)&&d.url&&d.checked).filter(d=>new Date(d.checked).getTime()>Date.now()-6*3600*1000).sort((a,b)=>a.price+a.shipping-b.price-b.shipping).slice(0,2);
-const best=deals[0];
-return '<section class="card"><div class="row"><div><div class="name">'+esc(p.name)+'</div><div class="spec">'+esc(p.detail)+'</div></div><span class="status">'+(best?'DEAL FOUND':'NO VERIFIED DEAL')+'</span></div><div class="line"><div><div class="muted">New retail comparison</div><div class="price">'+money(retail.price)+'</div><div class="footnote">'+esc(retail.description||"Price not verified")+'</div><div class="footnote">Source: '+esc(retail.checked||"not checked")+'</div></div><a class="btn" target="_blank" rel="noopener noreferrer" href="'+safe(retail.url||'#')+'">New ↗</a></div><div class="deal">'+(best?'<div><div class="savings">SAVE '+money(retail.price-best.price-best.shipping)+'</div><div class="muted">'+esc(best.title)+' · bid '+money(best.price)+' + '+money(best.shipping)+' postage</div><div class="footnote">Checked '+esc(best.checked)+'</div></div><a class="btn" target="_blank" rel="noopener noreferrer" href="'+safe(best.url)+'">Deal ↗</a>':'<div class="none">No verified bargain right now</div><a class="btn" target="_blank" rel="noopener noreferrer" href="'+safe(item.auction_search||'#')+'">eBay ↗</a>')+'</div></section>'
-}).join("");
-document.getElementById("summary").innerHTML='<b>Already owned:</b> Ryzen 7 9800X3D, 1TB + 2TB SSDs. <b>Planned PSU:</b> MSI MAG A850GL. Cooler AM5 fitting still to confirm.';
-document.getElementById("stamp").textContent=DATA.attempted_at?'Last automated attempt: '+new Date(DATA.attempted_at).toLocaleString('en-GB')+(DATA.errors?.length?' · some sources unavailable':''):'Initial reference prices — hourly refresh not yet confirmed';
+const parts=[
+{id:"case",name:"Montech KING 95 PRO White",desc:"Airflow ATX case · £150 maximum"},
+{id:"mobo",name:"MSI B850 Gaming Plus WiFi 6E",desc:"Exact board · AM5 · 2 M.2 slots"},
+{id:"gpu",name:"Nvidia RTX 5070 Ti 16GB",desc:"MSI Shadow 3X OC preferred"},
+{id:"ram",name:"32GB DDR5-6000 CL30 RGB",desc:"2×16GB · AMD EXPO required"}];
+let data={},view="all";const £=v=>typeof v==="number"&&isFinite(v)?"£"+v.toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}):"Unknown";
+const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safe=u=>{try{let v=new URL(u);return v.protocol==="https:"?v.href:"#"}catch{return "#"}};
+function status(id){try{return JSON.parse(localStorage.getItem("offer:"+id))||""}catch{return""}}
+function setStatus(id,v){localStorage.setItem("offer:"+id,JSON.stringify(v));render()}
+function setView(v){view=v;for(const x of ["all","auction","new","saved"])document.getElementById(x).classList.toggle("active",x===view);render()}
+function key(o){return o.url||o.name}
+function offerHTML(o,reference,part){
+ const auction=o.kind==="auction",price=Number(o.price),post=typeof o.postage==="number"?o.postage:null,total=price+(post||0);
+ const delta=!auction&&reference&&reference.price>total&&post!==null?reference.price-total:auction&&reference&&reference.price>total&&post!==null?reference.price-total:null;
+ const s=status(key(o));
+ const desc=esc((o.name||part.name).slice(0,160));
+ return '<div class="offer"><div class="line"><div><span class="badge '+(auction?'auction':'new')+'">'+(auction?'Auction':'New')+'</span> <b>'+esc(o.retailer||"Retailer")+'</b></div><strong class="pr">'+£(price)+'</strong></div><div class="meta">'+desc+'</div><div class="line"><div><div class="meta">Postage: '+(post!==null?£(post):'unknown')+' · Total: '+(post!==null?£(total):'at least '+£(price))+'</div>'+(delta!==null?'<div class="savings">'+(auction?'Potential saving ':'Below new by ')+£(delta)+'</div>':'')+'</div>'+(auction?'<div class="meta">End: '+esc(o.ends||"not available")+' · Bid may rise</div>':'')+'<div class="line" style="margin-top:9px"><div class="pl">'+esc((o.checked||"").replace("T"," "))+(o.source?' · '+esc(o.source):'')+'</div><div style="display:flex;gap:6px;align-items:center"><select aria-label="My decision" onchange="setStatus('+JSON.stringify(key(o)).replace(/</g,"\\u003c")+ ',this.value)"><option value=""'+(!s?' selected':'')+'>Unmarked</option>'+["Watch","Bid","Bought","Rejected"].map(x=>'<option value="'+x+'"'+(s===x?' selected':'')+'>'+x+'</option>').join("")+'</select><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+safe(o.url)+'">Open ↗</a></div></div></div>';
 }
-async function load(){
-document.getElementById("stamp").textContent="Loading latest saved checks…";
-try{const r=await fetch('data.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('fetch failed');DATA=await r.json();render()}catch{document.getElementById("stamp").textContent="Cannot load latest price data. Check again later."}}
-load();
+function render(){
+ const container=document.getElementById("parts");
+ container.innerHTML=parts.map(p=>{
+ const obj=data.items?.[p.id]||{};let offers=(obj.offers||[]).filter(o=>o.url&&typeof o.price==="number");
+ const fresh=offers.filter(o=>o.kind==="new" && new Date(o.checked).getTime()>Date.now()-48*3600*1000);
+ const retail=fresh.length?fresh.reduce((best,x)=>x.price+(x.postage??0)<best.price+(best.postage??0)?x:best):null;
+ const older=obj.new?{price:obj.new.price,url:obj.new.url,description:obj.new.description,checked:obj.new.checked}:null;
+ const comparison=retail||older;
+ const newList=offers.filter(o=>o.kind==="new").sort((a,b)=>a.price+(a.postage??0)-b.price-(b.postage??0));
+ const auctionList=offers.filter(o=>o.kind==="auction").filter(o=>new Date(o.checked).getTime()>Date.now()-8*3600*1000).sort((a,b)=>a.price+(a.postage??0)-b.price-(b.postage??0));
+ let visible=view==="new"?newList:view==="auction"?auctionList:[...newList,...auctionList];
+ if(view==="saved")visible=[...newList,...auctionList].filter(o=>status(key(o)));
+ visible=visible.slice(0,view==="all"?12:16);
+ const oldDisplay=(view==="all"||view==="new")&&!newList.length&&older?'<div class="offer"><div class="line"><span class="warn">Older retail reference — not live</span><strong class="pr">'+£(older.price)+'</strong></div><div class="meta">'+esc(older.description||"Source")+' · '+esc(older.checked||"date unknown")+'</div><a target="_blank" rel="noopener noreferrer" href="'+safe(older.url)+'">Check reference source ↗</a></div>':'';
+ const box=visible.map(o=>offerHTML(o,comparison,p)).join("")+oldDisplay;
+ const num=newList.length+" new · "+auctionList.length+" auctions";
+ return '<section class="card"><div class="head"><div class="line"><div><div class="title">'+esc(p.name)+'</div><div class="small">'+esc(p.desc)+'</div></div><span class="flag">'+num+'</span></div><div class="target">New price to beat: <b>'+£(comparison?.price)+'</b> '+(retail?'<span class="fine">· '+esc(retail.retailer)+' (checked)</span>':older?'<span class="warn">· older reference</span>':'· unavailable')+'</div></div><div class="list">'+(box||'<div class="no">No verified listings found in this check. <span class="fine">Coverage may be blocked; this is not proof no deals exist.</span></div>')+'<div class="offer"><a href="'+safe(obj.auction_search||"https://www.ebay.co.uk/")+'" target="_blank" rel="noopener noreferrer">See all eBay auctions ↗</a>'+(obj.problems?.length?'<span class="fine"> · '+obj.problems.length+' sources unavailable</span>':'')+'</div></div></section>';
+ }).join("");
+}
+async function reload(){
+ document.getElementById("stamp").textContent="Loading latest stored scan…";
+ try{
+ let r=await fetch("./data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("Unable to load scan");
+ data=await r.json();document.getElementById("stamp").textContent=data.attempted_at?"Last attempted scan: "+new Date(data.attempted_at).toLocaleString("en-GB")+" · hourly checks are best-effort":"Hourly scan has not run successfully yet · showing older reference prices";render()
+ }catch(e){document.getElementById("stamp").textContent="Unable to load latest source data. Reload this page."}
+}
+reload();
 </script></body></html>
