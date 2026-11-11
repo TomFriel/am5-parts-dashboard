@@ -87,6 +87,7 @@ def retail(key,url):
  title=(soup.title.get_text(" ",strip=True) if soup.title else "")[:170]
  text=soup.get_text(" ",strip=True)[:45000]
  if not matching(key,title):return None
+ if re.search(r"\b(?:B[ -]?GRADE|REFURBISHED|USED|OPEN BOX)\b",title,re.I):return None
  if domain(url) in ("idealo.co.uk","pricespy.co.uk"):
   # Comparison services are discovery sources; not individual merchant checkout offers
   return None
@@ -118,6 +119,10 @@ def retail(key,url):
    if node:
     price=numeric(node.get("content") or node.get("value") or node.get_text(" ",strip=True))
     if price:break
+ if name=="Scan":
+  # Scan renders 'RRP: £124.99£109.98'; the second is the offer price.
+  m=re.search(r"RRP:\s*£[\d,.]+\s*£([\d,.]+)",text[:4000],re.I)
+  if m:price=numeric(m.group(1))
  if price is None:
   # Scan and CCL product pages: first pound amount on exact model product block.
   if name in ("Scan","CCL","Watercooling UK","MSI UK"):
