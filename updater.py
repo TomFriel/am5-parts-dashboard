@@ -1,101 +1,187 @@
-import json,re,datetime,requests
-from bs4 import BeautifulSoup
+"""Best-effort public UK parts discovery. No paid services or secrets required.
+Sources: named product pages, price aggregators, Bing RSS discovery and eBay public search.
+Missing fields stay unknown. Price/stock are never invented.
+"""
+import datetime as dt, json, re, time, urllib.parse, xml.etree.ElementTree as ET
 from pathlib import Path
-from urllib.parse import quote
-UTC=datetime.timezone.utc
-NOW=datetime.datetime.now(UTC).isoformat(timespec="minutes")
-HEAD={"User-Agent":"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36"}
+import requests
+from bs4 import BeautifulSoup
+
+NOW=dt.datetime.now(dt.timezone.utc)
+STAMP=NOW.isoformat(timespec="minutes")
 P=Path("data.json")
-try: data=json.loads(P.read_text())
-except: data={}
-data.setdefault("items",{})
-def get(url):
- r=requests.get(url,headers=HEAD,timeout=22);r.raise_for_status()
- return BeautifulSoup(r.text,"html.parser")
-def gbp(s):
- m=re.search(r"£\s*([\d,]+(?:\.\d{1,2})?)",s)
- return float(m.group(1).replace(",","")) if m else None
-def update_new(key,price,url,description):
- if not price or not 20<price<2500:return
- data["items"].setdefault(key,{})["new"]={"price":price,"url":url,"description":description,"checked":NOW}
-# Retail price observations: only scrape a named product from a known source.
-sources=[
- ("mobo","https://www.maxmybuild.com/uk/motherboards/msi-b850-gaming-plus-wifi6e","B850 GAMING PLUS WIFI6E"),
- ("ram","https://theramageddon.com/uk-en/ddr5-6000-cl30-ram/","KLEVV Cras V RGB 32 GB"),
- ("gpu","https://pctechvault.com/market-watch/geforce-rtx-5070-ti/?component=gpu&market=new-retail&region=UK","GeForce RTX 5070 Ti (any brand)"),
- ("case","https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/","Montech KING 95 PRO White")
-]
-errors=[]
-for key,url,desc in sources:
- try:
-  soup=get(url); txt=soup.get_text(" ",strip=True)
-  price=None
-  if key=="mobo":
-   m=re.search(r"Where to buy the B850 GAMING PLUS WIFI6E.{0,900}?£\s*([\d,.]+)",txt,re.I)
-   if m:price=gbp("£"+m.group(1))
-  elif key=="ram":
-   m=re.search(r"KLEVV Cras V RGB 32 GB \(2 x 16 GB\).*?£\s*([\d,.]+)",txt,re.I)
-   if m:price=gbp("£"+m.group(1))
-  elif key=="gpu":
-   m=re.search(r"Cheapest in stock now.{0,550}?£\s*([\d,.]+)",txt,re.I)
-   if m:price=gbp("£"+m.group(1))
-  elif key=="case":
-   # Only price near explicit stock/product section
-   m=re.search(r"(?:Available|in stock).{0,450}?£\s*([\d,.]+)",txt,re.I)
-   if m:price=gbp("£"+m.group(1))
-  if price:update_new(key,price,url,desc)
-  else:errors.append(key+": retail price not parsed")
- except Exception as e: errors.append(key+": "+str(e)[:90])
-# eBay auction results, when the public search endpoint returns parsable listings.
-queries={
- "mobo":"MSI B850 Gaming Plus WiFi6E",
- "ram":"32GB DDR5 6000 CL30 RGB",
- "gpu":"RTX 5070 Ti 16GB",
- "case":"Montech KING 95 PRO white"
+try: old=json.loads(P.read_text())
+except: old={}
+S=requests.Session()
+S.headers.update({"User-Agent":"Mozilla/5.0 (compatible; AM5PriceResearch/1.0; +https://github.com/TomFriel/am5-parts-dashboard)","Accept-Language":"en-GB,en;q=.9"})
+PARTS={
+ "mobo":{"q":'"MSI B850 GAMING PLUS WIFI6E" buy UK', "terms":["b850","gaming plus","wifi6e"]},
+ "ram":{"q":'"32GB" "DDR5" "6000" "CL30" "RGB" EXPO UK buy', "terms":["ddr5","6000","rgb"]},
+ "gpu":{"q":'"RTX 5070 Ti" "16GB" buy UK', "terms":["5070","ti","16gb"]},
+ "case":{"q":'"Montech KING 95 PRO" "White" UK buy', "terms":["king","95","pro","white"]}
 }
-def valid(key,title):
- t=title.lower()
- if any(x in t for x in ["box only","empty box","faulty","for parts","read description","waterblock","backplate","broken","wanted","rtx 5070 ti super"]):return False
- return {"mobo":lambda: "b850" in t and "gaming plus" in t and ("wifi6e" in t or "wifi 6e" in t),
- "ram":lambda:("32gb" in t or "2x16" in t or "2 x 16" in t) and "6000" in t and ("cl30" in t or "c30" in t) and "rgb" in t,
- "gpu":lambda:"5070 ti" in t and "16gb" in t,
- "case":lambda:"king 95" in t and "pro" in t and ("white" in t or "wht" in t)}[key]()
-for key,q in queries.items():
- url="https://www.ebay.co.uk/sch/i.html?_nkw="+quote(q)+"&LH_Auction=1&LH_PrefLoc=1&_sop=1"
- data["items"].setdefault(key,{})["auction_search"]=url
+RETAILERS={
+ "scan.co.uk":"Scan","cclonline.com":"CCL","overclockers.co.uk":"Overclockers",
+ "awd-it.co.uk":"AWD-IT","ebuyer.com":"Ebuyer","currys.co.uk":"Currys",
+ "box.co.uk":"Box","novatech.co.uk":"Novatech","laptopsdirect.co.uk":"Laptops Direct",
+ "watercoolinguk.co.uk":"Watercooling UK","amazon.co.uk":"Amazon UK",
+ "uk-store.msi.com":"MSI UK","computerorbit.com":"Computer Orbit",
+ "theitbay.com":"The IT Bay","morecoco.co.uk":"MoreCoCo",
+ "idealo.co.uk":"idealo","pricespy.co.uk":"PriceSpy"}
+# Known exact-model URLs. Discovery adds links where available.
+SEEDS={
+ "mobo":[
+ "https://www.cclonline.com/b850-gaming-plus-wifi6e-msi-b850-gaming-plus-wifi6e-atx-motherboard-for-amd-am5-cpus/",
+ "https://www.scan.co.uk/products/msi-b850-gaming-plus-wifi6e-amd-b850-am5-ddr5-pcie-40-2x-m2-25g-wifi6e-usb-32-aplusc-amd-expo-atx",
+ "https://uk-store.msi.com/products/b850-gaming-plus-wifi6e"],
+ "ram":[],
+ "gpu":[],
+ "case":[
+ "https://www.scan.co.uk/products/montech-king-95-pro-white-mid-tower-chassis-argb-lighting-2x-140mm-fans-4x-120mm-mitx-matx-atx",
+ "https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/",
+ "https://www.idealo.co.uk/compare/203673893/montech-king-95-pro-white.html",
+ "https://pricespy.co.uk/product.php?p=12992220"]
+}
+def money(s):
+ m=re.search(r"£\s*([\d,]+(?:\.\d\d?)?)",str(s))
+ return round(float(m.group(1).replace(",","")),2) if m else None
+def get(url):
+ r=S.get(url,timeout=18);r.raise_for_status()
+ if "text/html" not in r.headers.get("Content-Type","text/html"):raise ValueError("Not HTML")
+ return BeautifulSoup(r.text[:2500000],"html.parser")
+def domain(url):
+ return urllib.parse.urlparse(url).netloc.lower().removeprefix("www.")
+def host_ok(url):
+ host=domain(url)
+ return host in RETAILERS
+def matching(key,txt):
+ s=re.sub(r"[\s_-]+"," ",str(txt).lower())
+ if key=="mobo":return "b850" in s and "gaming plus" in s and ("wifi6e" in s or "wifi 6e" in s)
+ if key=="ram":
+  return ("32gb" in s or "32 gb" in s or "2x16" in s or "2 x 16" in s) and "6000" in s and ("cl30" in s or "c30" in s or "cl 30" in s) and "rgb" in s and ("ddr5" in s or "ddr 5" in s)
+ if key=="gpu":return "5070 ti" in s and ("16gb" in s or "16 gb" in s) and not any(x in s for x in ["water block","waterblock","backplate","box only"])
+ if key=="case":return "king 95" in s and "pro" in s and "white" in s
+def disqualified(txt):
+ t=txt.lower()
+ return any(x in t for x in ["pre order","pre-order","preorder","out of stock","sold out","currently unavailable","unavailable","item overdue","email me when","notify me when","not available to buy","discontinued"])
+def jsonld(soup):
+ for tag in soup.select('script[type="application/ld+json"]'):
+  try:
+   root=json.loads(tag.string or tag.get_text())
+   stack=[root]
+   while stack:
+    obj=stack.pop()
+    if isinstance(obj,list):stack.extend(obj)
+    elif isinstance(obj,dict):
+     if isinstance(obj.get("@graph"),list):stack+=obj["@graph"]
+     if obj.get("@type") in ("Product","IndividualProduct") or ("Product" in obj.get("@type",[]) if isinstance(obj.get("@type"),list) else False):
+      yield obj
+  except Exception:continue
+def numeric(x):
  try:
-  soup=get(url)
-  results=[]
-  for el in soup.select("li.s-item, div.s-card")[:65]:
-   titleel=el.select_one(".s-item__title, .s-card__title")
-   priceel=el.select_one(".s-item__price, .s-card__price")
-   linkel=el.select_one("a.s-item__link, a.s-card__link")
-   if not titleel or not priceel or not linkel:continue
-   title=titleel.get_text(" ",strip=True)
-   if not valid(key,title):continue
-   raw=priceel.get_text(" ",strip=True)
-   price=gbp(raw)
-   if price is None or " to " in raw:continue
-   shipel=el.select_one(".s-item__shipping, .s-item__logisticsCost, .s-card__shipping")
-   shiptxt=shipel.get_text(" ",strip=True) if shipel else ""
-   ship=0 if "free" in shiptxt.lower() else gbp(shiptxt)
-   if ship is None:continue # don't pretend shipping is free
-   href=linkel.get("href","")
-   if not href.startswith("http") or "ebay.co.uk" not in href:continue
-   more=el.get_text(" ",strip=True)
-   if not re.search(r"\bbid(s)?\b",more,re.I):continue # exclude fixed price
-   # Only surface a strong discount against a recorded verified-new comparator.
-   ref=data["items"][key].get("new",{})
-   if not ref.get("price") or price+ship>ref["price"]*.85:continue
-   results.append({"title":title[:120],"price":price,"shipping":ship,"url":href.split("?")[0],"detail":more[-240:],"checked":NOW,"saving":round(ref["price"]-price-ship,2)})
-  results.sort(key=lambda x:x["price"]+x["shipping"])
-  data["items"][key]["deals"]=results[:3]
-  data["items"][key]["auction_checked"]=NOW
- except Exception as e:
-  errors.append(key+": eBay "+str(e)[:70])
-  # Do not keep expired/unverified auction offers after a failed fetch
-  data["items"][key]["deals"]=[]
-data["attempted_at"]=NOW
-data["errors"]=errors
-P.write_text(json.dumps(data,indent=2,ensure_ascii=False)+"\n")
-print("Checked:",NOW,"errors:",errors)
+  v=float(str(x).replace(",","").replace("£",""))
+  return round(v,2) if 20<v<4000 else None
+ except:return None
+def retail(key,url):
+ soup=get(url); name=RETAILERS[domain(url)]
+ title=(soup.title.get_text(" ",strip=True) if soup.title else "")[:170]
+ text=soup.get_text(" ",strip=True)[:45000]
+ if not matching(key,title):return None
+ if domain(url) in ("idealo.co.uk","pricespy.co.uk"):
+  # Comparison services are discovery sources; not individual merchant checkout offers
+  return None
+ if disqualified(text[:6500]):return None
+ price=None
+ for product in jsonld(soup):
+  if not matching(key,product.get("name",title)):continue
+  offers=product.get("offers",[])
+  if isinstance(offers,dict):offers=[offers]
+  for o in offers:
+   if not isinstance(o,dict):continue
+   avail=str(o.get("availability","")).lower()
+   if "outofstock" in avail or "preorder" in avail or "soldout" in avail:continue
+   price=numeric(o.get("price") or o.get("lowPrice"))
+   if price:break
+  if price:break
+ if price is None:
+  for sel in ['meta[property="product:price:amount"]','meta[property="og:price:amount"]','meta[itemprop="price"]','[itemprop="price"]']:
+   node=soup.select_one(sel)
+   if node:
+    price=numeric(node.get("content") or node.get("value") or node.get_text(" ",strip=True))
+    if price:break
+ if price is None:
+  # Scan and CCL product pages: first pound amount on exact model product block.
+  if name in ("Scan","CCL","Watercooling UK","MSI UK"):
+   price=money(text[:4200])
+ if not price:return None
+ if key=="case" and price>150:return None
+ postage=None
+ m=re.search(r"£\s*([\d.]+)\s+(?:next day )?delivery",text[:7000],re.I)
+ if m:postage=numeric(m.group(1)) or float(m.group(1))
+ if re.search(r"free delivery on this item",text[:6500],re.I):postage=0.0
+ return {"kind":"new","name":title,"retailer":name,"price":price,"postage":postage,"url":url,"checked":STAMP,"stock":"product page checked","source":"retailer","confidence":"site parsed"}
+def discovery(key):
+ urls=list(SEEDS[key])
+ q=PARTS[key]["q"]
+ for query in (q,q+" site:scan.co.uk OR site:cclonline.com OR site:overclockers.co.uk OR site:awd-it.co.uk",q+" site:ebuyer.com OR site:box.co.uk OR site:novatech.co.uk"):
+  try:
+   rss=S.get("https://www.bing.com/search?format=rss&q="+urllib.parse.quote(query),timeout=12)
+   rss.raise_for_status()
+   root=ET.fromstring(rss.content)
+   for link in root.findall(".//item/link"):
+    u=(link.text or "").strip()
+    if host_ok(u) and u not in urls:urls.append(u)
+  except Exception:continue
+ return urls[:28]
+def auctions(key,errors):
+ # Public eBay pages are frequently blocked; never invent current bid or end time.
+ query={"mobo":"MSI B850 Gaming Plus WiFi6E","ram":"32GB DDR5 6000 CL30 RGB","gpu":"RTX 5070 Ti 16GB","case":"Montech KING 95 PRO White"}[key]
+ search="https://www.ebay.co.uk/sch/i.html?_nkw="+urllib.parse.quote_plus(query)+"&LH_Auction=1&LH_PrefLoc=1&_sop=1"
+ found=[]
+ try:
+  soup=get(search)
+  for el in soup.select("li.s-item, div.s-card")[:90]:
+   title_el=el.select_one(".s-item__title,.s-card__title")
+   cost_el=el.select_one(".s-item__price,.s-card__price")
+   link_el=el.select_one("a.s-item__link,a.s-card__link")
+   if not(title_el and cost_el and link_el):continue
+   title=title_el.get_text(" ",strip=True)
+   if not matching(key,title) or any(z in title.lower() for z in ["faulty","spares","repair","box only","read description"]):continue
+   full=el.get_text(" ",strip=True)
+   if not re.search(r"\bbids?\b",full,re.I):continue
+   p=money(cost_el.get_text(" ",strip=True))
+   if not p:continue
+   ship=el.select_one(".s-item__shipping,.s-item__logisticsCost,.s-card__shipping")
+   ship_text=ship.get_text(" ",strip=True) if ship else ""
+   post=0.0 if "free" in ship_text.lower() else money(ship_text)
+   end=el.select_one(".s-item__time-left,.s-item__timeLeft")
+   end_text=end.get_text(" ",strip=True) if end else None
+   url=link_el.get("href","").split("?")[0]
+   if not url.startswith("https://") or "ebay." not in domain(url):continue
+   found.append({"kind":"auction","name":title,"retailer":"eBay","price":p,"postage":post,"url":url,"checked":STAMP,"ends":end_text,"stock":"auction listed","source":"eBay results","confidence":"search card parsed"})
+ except Exception as e:errors.append("eBay "+key+": "+str(e)[:70])
+ return found[:12],search
+def run():
+ results={"attempted_at":STAMP,"items":{},"errors":[],"about":"Public retail and auction research; coverage incomplete. Missing postage means not yet comparable."}
+ for key in PARTS:
+  item={"offers":[],"auction_search":"","scan_count":0,"problems":[]}
+  urls=discovery(key)
+  for u in urls:
+   if not host_ok(u):continue
+   try:
+    offer=retail(key,u)
+    if offer:item["offers"].append(offer)
+   except Exception as e:item["problems"].append(domain(u)+": "+str(e)[:55])
+  aa,item["auction_search"]=auctions(key,item["problems"])
+  item["offers"]+=aa
+  seen=set()
+  dedup=[]
+  for offer in sorted(item["offers"],key=lambda o:o["price"]+(o["postage"] or 0)):
+   token=offer["url"].split("?")[0].rstrip("/")
+   if token not in seen:dedup.append(offer);seen.add(token)
+  item["offers"]=dedup[:30]
+  item["scan_count"]=len(urls)
+  results["items"][key]=item
+  print(key,"urls",len(urls),"offers",len(dedup),"errors",len(item["problems"]))
+ P.write_text(json.dumps(results,indent=2,ensure_ascii=False)+"\n")
+if __name__=="__main__":run()
