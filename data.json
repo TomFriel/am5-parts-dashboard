@@ -1,0 +1,46 @@
+{
+  "attempted_at": null,
+  "items": {
+    "mobo": {
+      "new": {
+        "price": 153.94,
+        "url": "https://www.maxmybuild.com/uk/motherboards/msi-b850-gaming-plus-wifi6e",
+        "description": "MSI B850 Gaming Plus WiFi6E, CCL £149.99 + £3.95 delivery",
+        "checked": "2026-11-11 (source checked daily)"
+      },
+      "deals": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=MSI+B850+Gaming+Plus+WiFi6E&LH_Auction=1"
+    },
+    "ram": {
+      "new": {
+        "price": 455.99,
+        "url": "https://theramageddon.com/uk-en/ddr5-6000-cl30-ram/",
+        "description": "KLEVV Cras V RGB 32GB 6000 CL30 (EXPO compatibility verify), Overclockers",
+        "checked": "2026-11-09"
+      },
+      "deals": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=32GB+DDR5+6000+CL30+RGB&LH_Auction=1"
+    },
+    "gpu": {
+      "new": {
+        "price": 1130,
+        "url": "https://pctechvault.com/market-watch/geforce-rtx-5070-ti/?component=gpu&market=new-retail&region=UK",
+        "description": "RTX 5070 Ti 16GB Gainward Phoenix (not MSI Shadow), Overclockers",
+        "checked": "2026-11-10"
+      },
+      "deals": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=RTX+5070+Ti+16GB&LH_Auction=1"
+    },
+    "case": {
+      "new": {
+        "price": 134.11,
+        "url": "https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/",
+        "description": "Montech KING 95 PRO White, Watercooling UK (delivery extra)",
+        "checked": "2026-11-11"
+      },
+      "deals": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=Montech+KING+95+PRO+white&LH_Auction=1"
+    }
+  },
+  "errors": []
+}
