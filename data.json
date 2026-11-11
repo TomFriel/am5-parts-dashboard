@@ -33,13 +33,33 @@
     },
     "case": {
       "new": {
-        "price": 134.11,
-        "url": "https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/",
-        "description": "Montech KING 95 PRO White, Watercooling UK (delivery extra)",
-        "checked": "2026-11-11"
+        "price": 109.98,
+        "url": "https://www.scan.co.uk/products/montech-king-95-pro-white-mid-tower-chassis-argb-lighting-2x-140mm-fans-4x-120mm-mitx-matx-atx",
+        "description": "Scan · white KING 95 PRO · indexed offer, availability/postage to Ireland not checked",
+        "checked": "Indexed September 2026; confirm at checkout"
       },
       "deals": [],
-      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=Montech+KING+95+PRO+white&LH_Auction=1"
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=Montech+KING+95+PRO+white&LH_Auction=1",
+      "reference_options": [
+        {
+          "retailer": "Scan",
+          "price": 109.98,
+          "url": "https://www.scan.co.uk/products/montech-king-95-pro-white-mid-tower-chassis-argb-lighting-2x-140mm-fans-4x-120mm-mitx-matx-atx",
+          "description": "New · older indexed offer, verify now"
+        },
+        {
+          "retailer": "Watercooling UK",
+          "price": 134.11,
+          "url": "https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/",
+          "description": "New · older indexed offer, delivery extra"
+        },
+        {
+          "retailer": "Overclockers UK",
+          "price": 109.99,
+          "url": "https://www.overclockers.co.uk/montech-king-95-pro-midi-tower-tempered-glass-argb-white/BG-CAS-MON-01483.html",
+          "description": "B-grade / potentially used · older indexed offer · six-month warranty"
+        }
+      ]
     }
   },
   "errors": []
