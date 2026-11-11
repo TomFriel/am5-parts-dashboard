@@ -90,7 +90,16 @@ def retail(key,url):
  if domain(url) in ("idealo.co.uk","pricespy.co.uk"):
   # Comparison services are discovery sources; not individual merchant checkout offers
   return None
- if disqualified(text[:6500]):return None
+ # Product-page availability: avoid rejecting pages just because they include
+ # a generic "Email me when availability changes" notification button.
+ intro=text[:2200].lower()
+ if name=="Scan":
+  if "pre order" in intro or "pre-order" in intro or "item overdue" in intro:return None
+  if "add to basket" not in intro and "in stock" not in intro:return None
+ elif name=="MSI UK":
+  if "unavailable" in intro or "sold out" in intro:return None
+ else:
+  if any(z in intro for z in ("out of stock","sold out","currently unavailable","pre order","pre-order","preorder")):return None
  price=None
  for product in jsonld(soup):
   if not matching(key,product.get("name",title)):continue
