@@ -1,66 +1,44 @@
 {
-  "attempted_at": null,
+  "attempted_at": "2026-11-12T03:51+00:00",
   "items": {
     "mobo": {
-      "new": {
-        "price": 153.94,
-        "url": "https://www.maxmybuild.com/uk/motherboards/msi-b850-gaming-plus-wifi6e",
-        "description": "MSI B850 Gaming Plus WiFi6E, CCL £149.99 + £3.95 delivery",
-        "checked": "2026-11-11 (source checked daily)"
-      },
-      "deals": [],
-      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=MSI+B850+Gaming+Plus+WiFi6E&LH_Auction=1"
+      "offers": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=MSI+B850+Gaming+Plus+WiFi6E&LH_Auction=1&LH_PrefLoc=1&_sop=1",
+      "scan_count": 3,
+      "problems": [
+        "cclonline.com: 403 Client Error: Forbidden for url: https://www.cclonl",
+        "scan.co.uk: 403 Client Error: Forbidden for url: https://www.scan.c",
+        "eBay mobo: 403 Client Error: Forbidden for url: https://www.ebay.co.uk/sch/i.html"
+      ]
     },
     "ram": {
-      "new": {
-        "price": 455.99,
-        "url": "https://theramageddon.com/uk-en/ddr5-6000-cl30-ram/",
-        "description": "KLEVV Cras V RGB 32GB 6000 CL30 (EXPO compatibility verify), Overclockers",
-        "checked": "2026-11-09"
-      },
-      "deals": [],
-      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=32GB+DDR5+6000+CL30+RGB&LH_Auction=1"
+      "offers": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=32GB+DDR5+6000+CL30+RGB&LH_Auction=1&LH_PrefLoc=1&_sop=1",
+      "scan_count": 0,
+      "problems": [
+        "eBay ram: 403 Client Error: Forbidden for url: https://www.ebay.co.uk/sch/i.html"
+      ]
     },
     "gpu": {
-      "new": {
-        "price": 1130,
-        "url": "https://pctechvault.com/market-watch/geforce-rtx-5070-ti/?component=gpu&market=new-retail&region=UK",
-        "description": "RTX 5070 Ti 16GB Gainward Phoenix (not MSI Shadow), Overclockers",
-        "checked": "2026-11-10"
-      },
-      "deals": [],
-      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=RTX+5070+Ti+16GB&LH_Auction=1"
+      "offers": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=RTX+5070+Ti+16GB&LH_Auction=1&LH_PrefLoc=1&_sop=1",
+      "scan_count": 0,
+      "problems": [
+        "eBay gpu: 403 Client Error: Forbidden for url: https://www.ebay.co.uk/sch/i.html"
+      ]
     },
     "case": {
-      "new": {
-        "price": 109.98,
-        "url": "https://www.scan.co.uk/products/montech-king-95-pro-white-mid-tower-chassis-argb-lighting-2x-140mm-fans-4x-120mm-mitx-matx-atx",
-        "description": "Scan · white KING 95 PRO · indexed offer, availability/postage to Ireland not checked",
-        "checked": "Indexed September 2026; confirm at checkout"
-      },
-      "deals": [],
-      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=Montech+KING+95+PRO+white&LH_Auction=1",
-      "reference_options": [
-        {
-          "retailer": "Scan",
-          "price": 109.98,
-          "url": "https://www.scan.co.uk/products/montech-king-95-pro-white-mid-tower-chassis-argb-lighting-2x-140mm-fans-4x-120mm-mitx-matx-atx",
-          "description": "New · older indexed offer, verify now"
-        },
-        {
-          "retailer": "Watercooling UK",
-          "price": 134.11,
-          "url": "https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/",
-          "description": "New · older indexed offer, delivery extra"
-        },
-        {
-          "retailer": "Overclockers UK",
-          "price": 109.99,
-          "url": "https://www.overclockers.co.uk/montech-king-95-pro-midi-tower-tempered-glass-argb-white/BG-CAS-MON-01483.html",
-          "description": "B-grade / potentially used · older indexed offer · six-month warranty"
-        }
+      "offers": [],
+      "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=Montech+KING+95+PRO+White&LH_Auction=1&LH_PrefLoc=1&_sop=1",
+      "scan_count": 4,
+      "problems": [
+        "scan.co.uk: 403 Client Error: Forbidden for url: https://www.scan.c",
+        "watercoolinguk.co.uk: 403 Client Error: Forbidden for url: https://www.waterc",
+        "idealo.co.uk: 403 Client Error: Forbidden for url: https://www.idealo",
+        "eBay case: 403 Client Error: Forbidden for url: https://www.ebay.co.uk/sch/i.html"
       ]
     }
   },
-  "errors": []
+  "errors": [],
+  "about": "Public retail and auction research; coverage incomplete. Missing postage means not yet comparable."
 }
