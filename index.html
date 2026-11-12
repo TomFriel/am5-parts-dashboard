@@ -7,52 +7,61 @@
 <div id="parts"></div><div class="sum" id="sum">CPU purchased · SSDs reused · cooler to confirm AM5. PSU planned: MSI MAG A850GL.</div>
 <div class="foot"><b>How this works:</b> GitHub attempts an hourly scan of named retailers and public searches (including Scan, CCL, AWD-IT, Overclockers, Box, Ebuyer, Currys, Amazon and others) plus eBay auctions. Coverage is best-effort, not every store; some sites block automated reads. Missing postage, seller, auction end and stock are shown as unknown. A lower current bid is not a guaranteed sale price. The reference prices shown when no newer listing can be checked are <b>not</b> live prices. Delivery to Ireland must be checked on the merchant's checkout. Decisions are stored only in this browser.</div></main>
 <script>
-const parts=[
+var parts=[
 {id:"case",name:"Montech KING 95 PRO White",desc:"Airflow ATX case · £150 maximum"},
-{id:"mobo",name:"MSI B850 Gaming Plus WiFi 6E",desc:"Exact board · AM5 · 2 M.2 slots"},
+{id:"mobo",name:"MSI B850 Gaming Plus WiFi 6E",desc:"Exact board · AM5"},
 {id:"gpu",name:"Nvidia RTX 5070 Ti 16GB",desc:"MSI Shadow 3X OC preferred"},
-{id:"ram",name:"32GB DDR5-6000 CL30 RGB",desc:"2×16GB · AMD EXPO required"}];
-let data={},view="all";const £=v=>typeof v==="number"&&isFinite(v)?"£"+v.toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}):"Unknown";
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const safe=u=>{try{let v=new URL(u);return v.protocol==="https:"?v.href:"#"}catch{return "#"}};
-function status(id){try{return JSON.parse(localStorage.getItem("offer:"+id))||""}catch{return""}}
-function setStatus(id,v){localStorage.setItem("offer:"+id,JSON.stringify(v));render()}
-function setView(v){view=v;for(const x of ["all","auction","new","saved"])document.getElementById(x).classList.toggle("active",x===view);render()}
-function key(o){return o.url||o.name}
-function offerHTML(o,reference,part){
- const auction=o.kind==="auction",price=Number(o.price),post=typeof o.postage==="number"?o.postage:null,total=price+(post||0);
- const delta=!auction&&reference&&reference.price>total&&post!==null?reference.price-total:auction&&reference&&reference.price>total&&post!==null?reference.price-total:null;
- const s=status(key(o));
- const desc=esc((o.name||part.name).slice(0,160));
- return '<div class="offer"><div class="line"><div><span class="badge '+(auction?'auction':'new')+'">'+(auction?'Auction':'New')+'</span> <b>'+esc(o.retailer||"Retailer")+'</b></div><strong class="pr">'+£(price)+'</strong></div><div class="meta">'+desc+'</div><div class="line"><div><div class="meta">Postage: '+(post!==null?£(post):'unknown')+' · Total: '+(post!==null?£(total):'at least '+£(price))+'</div>'+(delta!==null?'<div class="savings">'+(auction?'Potential saving ':'Below new by ')+£(delta)+'</div>':'')+'</div>'+(auction?'<div class="meta">End: '+esc(o.ends||"not available")+' · Bid may rise</div>':'')+'<div class="line" style="margin-top:9px"><div class="pl">'+esc((o.checked||"").replace("T"," "))+(o.source?' · '+esc(o.source):'')+'</div><div style="display:flex;gap:6px;align-items:center"><select aria-label="My decision" onchange="setStatus('+JSON.stringify(key(o)).replace(/</g,"\\u003c")+ ',this.value)"><option value=""'+(!s?' selected':'')+'>Unmarked</option>'+["Watch","Bid","Bought","Rejected"].map(x=>'<option value="'+x+'"'+(s===x?' selected':'')+'>'+x+'</option>').join("")+'</select><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+safe(o.url)+'">Open ↗</a></div></div></div>';
+{id:"ram",name:"32GB DDR5-6000 CL30 RGB",desc:"2×16GB · AMD EXPO required"}
+];
+var data={items:{}}, view="all";
+function money(v){return typeof v==="number"&&isFinite(v)?"£"+v.toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2}):"Unknown"}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function safe(v){try{var u=new URL(v);return u.protocol==="https:"?u.href:"#"}catch(e){return "#"}}
+function getStatus(id){try{return localStorage.getItem("offer:"+id)||""}catch(e){return ""}}
+function setStatus(id,v){try{localStorage.setItem("offer:"+id,v)}catch(e){} render()}
+function setView(v){view=v;["all","auction","new","saved"].forEach(function(x){document.getElementById(x).classList.toggle("active",x===view)});render()}
+function idOf(o){return o.url||o.name||""}
+function listing(o,reference){
+ var bid=o.kind==="auction",post=typeof o.postage==="number"?o.postage:null,total=o.price+(post||0),s=getStatus(idOf(o));
+ var saving=reference&&post!==null&&reference.price>total?reference.price-total:null;
+ return '<div class="offer"><div class="line"><div><span class="badge '+(bid?'auction':'new')+'">'+(bid?'Auction':'New')+'</span> <b>'+esc(o.retailer||"Seller unknown")+'</b></div><strong class="pr">'+money(o.price)+'</strong></div>'+
+ '<div class="meta">'+esc(o.name||"Listing")+'</div>'+
+ '<div class="line"><div class="meta">Postage: '+(post===null?'Unknown':money(post))+' · Total: '+(post===null?'at least '+money(o.price):money(total))+'</div>'+(saving===null?'':'<span class="savings">'+(bid?'Potential saving ':'Below new by ')+money(saving)+'</span>')+'</div>'+
+ (bid?'<div class="meta">Auction end: '+esc(o.ends||"Unknown")+' · bids may rise</div>':'')+
+ '<div class="line" style="margin-top:10px"><span class="pl">'+esc(o.checked||"Not timestamped")+'</span><div style="display:flex;gap:6px;align-items:center"><select data-id="'+esc(idOf(o))+'" aria-label="Mark listing">'+
+ ['','Watch','Bid','Bought','Rejected'].map(function(v){return '<option value="'+v+'"'+(s===v?' selected':'')+'>'+(v||'Unmarked')+'</option>'}).join('')+
+ '</select><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+safe(o.url)+'">Open ↗</a></div></div></div>';
 }
 function render(){
- const container=document.getElementById("parts");
- container.innerHTML=parts.map(p=>{
- const obj=data.items?.[p.id]||{};let offers=(obj.offers||[]).filter(o=>o.url&&typeof o.price==="number");
- const fresh=offers.filter(o=>o.kind==="new" && new Date(o.checked).getTime()>Date.now()-48*3600*1000);
- const retail=fresh.length?fresh.reduce((best,x)=>x.price+(x.postage??0)<best.price+(best.postage??0)?x:best):null;
- const older=obj.new?{price:obj.new.price,url:obj.new.url,description:obj.new.description,checked:obj.new.checked}:null;
- const comparison=retail||older;
- const newList=offers.filter(o=>o.kind==="new").sort((a,b)=>a.price+(a.postage??0)-b.price-(b.postage??0));
- const auctionList=offers.filter(o=>o.kind==="auction").filter(o=>new Date(o.checked).getTime()>Date.now()-8*3600*1000).sort((a,b)=>a.price+(a.postage??0)-b.price-(b.postage??0));
- let visible=view==="new"?newList:view==="auction"?auctionList:[...newList,...auctionList];
- if(view==="saved")visible=[...newList,...auctionList].filter(o=>status(key(o)));
- visible=visible.slice(0,view==="all"?12:16);
- const oldDisplay=(view==="all"||view==="new")&&!newList.length&&older?'<div class="offer"><div class="line"><span class="warn">Older retail reference — not live</span><strong class="pr">'+£(older.price)+'</strong></div><div class="meta">'+esc(older.description||"Source")+' · '+esc(older.checked||"date unknown")+'</div><a target="_blank" rel="noopener noreferrer" href="'+safe(older.url)+'">Check reference source ↗</a></div>':'';
- const leads=(!newList.length&&view!=="saved"&&view!=="auction"?(obj.reference_options||[]):[]);
- const leadDisplay=leads.length?'<div class="offer"><div class="warn" style="margin-bottom:7px">Older indexed leads — NOT verified live</div>'+leads.map(o=>'<div class="line" style="margin:8px 0"><div><b>'+esc(o.retailer)+'</b> · '+£(o.price)+'<div class="fine">'+esc(o.description)+'</div></div><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+safe(o.url)+'">Check ↗</a></div>').join("")+'</div>':'';
- const box=visible.map(o=>offerHTML(o,comparison,p)).join("")+(leadDisplay||oldDisplay);
- const num=newList.length+" new · "+auctionList.length+" auctions";
- return '<section class="card"><div class="head"><div class="line"><div><div class="title">'+esc(p.name)+'</div><div class="small">'+esc(p.desc)+'</div></div><span class="flag">'+num+'</span></div><div class="target">New price to beat: <b>'+£(comparison?.price)+'</b> '+(retail?'<span class="fine">· '+esc(retail.retailer)+' (checked)</span>':older?'<span class="warn">· older reference</span>':'· unavailable')+'</div></div><div class="list">'+(box||'<div class="no">No verified listings found in this check. <span class="fine">Coverage may be blocked; this is not proof no deals exist.</span></div>')+'<div class="offer"><a href="'+safe(obj.auction_search||"https://www.ebay.co.uk/")+'" target="_blank" rel="noopener noreferrer">See all eBay auctions ↗</a>'+(obj.problems?.length?'<span class="fine"> · '+obj.problems.length+' sources unavailable</span>':'')+'</div></div></section>';
- }).join("");
+ var content=parts.map(function(p){
+ var obj=(data.items||{})[p.id]||{},offers=(obj.offers||[]).filter(function(o){return typeof o.price==="number"&&o.url&&o.kind}),newOffers=offers.filter(function(o){return o.kind==="new"}),auctions=offers.filter(function(o){return o.kind==="auction"&&new Date(o.checked).getTime()>Date.now()-8*3600000});
+ newOffers.sort(function(a,b){return a.price-b.price});auctions.sort(function(a,b){return a.price-b.price});
+ var reference=newOffers.length?newOffers[0]:(obj.new||null);
+ var shown=view==="new"?newOffers:view==="auction"?auctions:newOffers.concat(auctions);
+ if(view==="saved")shown=newOffers.concat(auctions).filter(function(o){return !!getStatus(idOf(o))});
+ shown=shown.slice(0,16);
+ var list=shown.map(function(o){return listing(o,reference)}).join('');
+ if(!list&&(view==="all"||view==="new")){
+  var leads=obj.reference_options||[];
+  if(leads.length)list='<div class="offer"><div class="warn">Older indexed leads · verify before buying</div>'+leads.map(function(o){return '<div class="line" style="margin:12px 0"><div><b>'+esc(o.retailer)+'</b> · '+money(o.price)+'<div class="fine">'+esc(o.description)+'</div></div><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+safe(o.url)+'">Check ↗</a></div>'}).join('')+'</div>';
+  else if(obj.new)list='<div class="offer"><div class="warn">Older new-price reference (not live)</div><div class="line"><strong class="pr">'+money(obj.new.price)+'</strong><a class="btn sm" target="_blank" rel="noopener noreferrer" href="'+safe(obj.new.url)+'">Check ↗</a></div><div class="meta">'+esc(obj.new.description||"")+'</div></div>';
+ }
+ if(!list)list='<div class="no">No verified listings from this check. Some sources block automated access.</div>';
+ return '<section class="card"><div class="head"><div class="line"><div><div class="title">'+esc(p.name)+'</div><div class="small">'+esc(p.desc)+'</div></div><span class="flag">'+newOffers.length+' new · '+auctions.length+' auctions</span></div><div class="target">New price to beat: <b>'+money(reference&&reference.price)+'</b> '+(newOffers.length?'· latest parsed retailer price':'· older reference, check source')+'</div></div><div class="list">'+list+'<div class="offer"><a target="_blank" rel="noopener noreferrer" href="'+safe(obj.auction_search||"https://www.ebay.co.uk/")+'">Browse eBay auctions ↗</a></div></div></section>';
+ }).join('');
+ document.getElementById("parts").innerHTML=content;
+ Array.prototype.forEach.call(document.querySelectorAll("select[data-id]"),function(sel){sel.addEventListener("change",function(){setStatus(sel.getAttribute("data-id"),sel.value)})});
 }
 async function reload(){
- document.getElementById("stamp").textContent="Loading latest stored scan…";
+ document.getElementById("stamp").textContent="Loading latest saved checks…";
  try{
- let r=await fetch("./data.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("Unable to load scan");
- data=await r.json();document.getElementById("stamp").textContent=data.attempted_at?"Last attempted scan: "+new Date(data.attempted_at).toLocaleString("en-GB")+" · hourly checks are best-effort":"Hourly scan has not run successfully yet · showing older reference prices";render()
- }catch(e){document.getElementById("stamp").textContent="Unable to load latest source data. Reload this page."}
+  var response=await fetch("./data.json?ts="+Date.now(),{cache:"no-store"});
+  if(!response.ok)throw Error("HTTP "+response.status);
+  data=await response.json();
+  document.getElementById("stamp").textContent=data.attempted_at?"Last check: "+new Date(data.attempted_at).toLocaleString("en-GB"):"Hourly scan has not run successfully yet · reference prices only";
+ }catch(e){document.getElementById("stamp").textContent="Live data unavailable · showing saved reference prices";}
+ render();
 }
+render();
 reload();
 </script></body></html>
