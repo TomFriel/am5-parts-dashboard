@@ -1,5 +1,5 @@
 {
-  "attempted_at": "2026-11-13T09:37+00:00",
+  "attempted_at": "2026-11-13T17:48+00:00",
   "items": {
     "mobo": {
       "offers": [],
@@ -36,7 +36,7 @@
           "price": 134.11,
           "postage": null,
           "url": "https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/",
-          "checked": "2026-11-13T09:37+00:00",
+          "checked": "2026-11-13T17:48+00:00",
           "stock": "product page checked",
           "source": "retailer",
           "confidence": "site parsed"
