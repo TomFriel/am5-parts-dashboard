@@ -1,5 +1,5 @@
 {
-  "attempted_at": "2026-11-12T20:52+00:00",
+  "attempted_at": "2026-11-13T01:53+00:00",
   "items": {
     "mobo": {
       "offers": [],
@@ -28,24 +28,12 @@
       ]
     },
     "case": {
-      "offers": [
-        {
-          "kind": "new",
-          "name": "Montech KING 95 PRO Midi-Tower, Tempered Glass, ARGB - white - Watercooling UK",
-          "retailer": "Watercooling UK",
-          "price": 134.11,
-          "postage": null,
-          "url": "https://www.watercoolinguk.co.uk/product/montech-king-95-pro-midi-tower-tempered-glass-argb-white/",
-          "checked": "2026-11-12T20:52+00:00",
-          "stock": "product page checked",
-          "source": "retailer",
-          "confidence": "site parsed"
-        }
-      ],
+      "offers": [],
       "auction_search": "https://www.ebay.co.uk/sch/i.html?_nkw=Montech+KING+95+PRO+White&LH_Auction=1&LH_PrefLoc=1&_sop=1",
       "scan_count": 4,
       "problems": [
         "scan.co.uk: 403 Client Error: Forbidden for url: https://www.scan.c",
+        "watercoolinguk.co.uk: 403 Client Error: Forbidden for url: https://www.waterc",
         "idealo.co.uk: 403 Client Error: Forbidden for url: https://www.idealo",
         "eBay case: 403 Client Error: Forbidden for url: https://www.ebay.co.uk/sch/i.html"
       ]
